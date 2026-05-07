@@ -1,176 +1,154 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>訂單查詢系統</title>
-    <style>
-        :root {
-            --border-color: #ccc;
-            --header-bg: #f2f2f2;
-        }
-        body { font-family: "Microsoft JhengHei", sans-serif; padding: 30px; background-color: #fff; }
-        h1 { font-size: 24px; margin-bottom: 25px; font-weight: bold; }
+<meta charset="UTF-8">
+<title>訂單查詢系統</title>
 
-        /* 查詢區域佈局 */
-        .search-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px 10px;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .form-group { display: flex; align-items: center; white-space: nowrap; }
-        .form-group label { margin-right: 8px; font-size: 16px; }
-        .form-group input {
-            padding: 4px 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 2px;
-            width: 100%;
-            height: 25px;
-        }
-
-        button {
-            padding: 4px 15px;
-            background-color: #efefef;
-            border: 1px solid #767676;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button:hover { background-color: #e5e5e5; }
-
-        /* 表格樣式 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th {
-            background-color: var(--header-bg);
-            border: 1px solid #ddd;
-            padding: 12px 8px;
-            font-weight: bold;
-            text-align: center;
-        }
-        td {
-            border: 1px solid #ddd;
-            padding: 10px 8px;
-            text-align: center;
-        }
-        tr:nth-child(even) { background-color: #fafafa; }
-
-        .status-bar { margin-top: 10px; font-size: 14px; color: #666; }
-    </style>
+<style>
+body { font-family: Arial; padding: 20px; }
+input, button { margin: 5px; padding: 6px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background: #f2f2f2; }
+.info { margin-top: 10px; font-weight: bold; }
+</style>
 </head>
+
 <body>
 
-    <h1>訂單查詢系統</h1>
+<h2>訂單查詢系統</h2>
 
-    <div class="search-container">
-        <div class="form-group">
-            <label>列碼：</label><input type="text" id="rowId">
-        </div>
-        <div class="form-group">
-            <label>訂單編號：</label><input type="text" id="orderId">
-        </div>
-        <div class="form-group">
-            <label>會員ID：</label><input type="text" id="memberId">
-        </div>
-        <div class="form-group">
-            <label>會員姓名：</label><input type="text" id="name">
-        </div>
-        <div class="form-group">
-            <label>商品：</label><input type="text" id="product">
-        </div>
-        <div class="form-group">
-            <label>金額：</label><input type="text" id="amount">
-        </div>
-        <div class="form-group" style="grid-column: span 1;">
-            <label>交易時間：</label><input type="text" id="tradeTime" placeholder="YYYY-MM-DD">
-        </div>
-        <button onclick="handleSearch()">查詢</button>
-    </div>
+<!-- 🔹 查詢條件 -->
+列碼：
+<input type="text" id="row">
 
-    <div id="statusBar" class="status-bar"></div>
+訂單編號：
+<input type="text" id="order">
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 12%;">列碼</th>
-                <th style="width: 18%;">訂單編號</th>
-                <th style="width: 15%;">會員ID</th>
-                <th style="width: 15%;">會員姓名</th>
-                <th style="width: 15%;">商品</th>
-                <th style="width: 10%;">金額</th>
-                <th style="width: 15%;">交易時間</th>
-            </tr>
-        </thead>
-        <tbody id="dataTable">
-            </tbody>
-    </table>
+會員ID：
+<input type="text" id="memberId">
 
-    <script>
-        async function handleSearch() {
-            const webhookUrl = 'https://ejagf9pp.roamerhost.com/webhook-test/ec33a6e9-5571-47e3-a674-a1c6b65fa661';
-            const statusBar = document.getElementById('statusBar');
-            const dataTable = document.getElementById('dataTable');
+會員姓名：
+<input type="text" id="name">
 
-            // 抓取所有欄位值
-            const payload = {
-                rowId: document.getElementById('rowId').value,
-                orderId: document.getElementById('orderId').value,
-                memberId: document.getElementById('memberId').value,
-                name: document.getElementById('name').value, // 對應圖片要求的查詢姓名
-                product: document.getElementById('product').value,
-                amount: document.getElementById('amount').value,
-                tradeTime: document.getElementById('tradeTime').value
-            };
+商品：
+<input type="text" id="product">
 
-            statusBar.innerText = "查詢中...";
+金額：
+<input type="text" id="amount">
 
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+交易時間：
+<input type="text" id="time" placeholder="YYYY-MM-DD">
 
-                if (!response.ok) throw new Error("網路請求失敗");
+<button onclick="search()">查詢</button>
 
-                const result = await response.json();
-                statusBar.innerText = "查詢成功";
+<div class="info" id="info"></div>
 
-                // 將回傳資料轉為表格行
-                // 假設回傳格式為物件陣列 [{...}, {...}]
-                const items = Array.isArray(result) ? result : [result];
-                renderTable(items);
+<!-- 🔹 表格 -->
+<table>
+<thead>
+<tr>
+  <th>列碼</th>
+  <th>訂單編號</th>
+  <th>會員ID</th>
+  <th>會員姓名</th>
+  <th>商品</th>
+  <th>金額</th>
+  <th>交易時間</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
 
-            } catch (error) {
-                statusBar.innerText = "錯誤: " + error.message;
-                console.error(error);
-            }
-        }
+<script>
 
-        function renderTable(dataList) {
-            const dataTable = document.getElementById('dataTable');
-            dataTable.innerHTML = ""; // 先清空表格
+// 🔹 金額格式化
+function formatMoney(num){
+  if(!num) return "-";
+  return Number(num).toLocaleString();
+}
 
-            dataList.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.rowId || '-'}</td>
-                    <td>${item.orderId || '-'}</td>
-                    <td>${item.memberId || '-'}</td>
-                    <td>${item.name || '-'}</td>
-                    <td>${item.product || '-'}</td>
-                    <td>${item.amount || '-'}</td>
-                    <td>${item.tradeTime || '-'}</td>
-                `;
-                dataTable.appendChild(row);
-            });
-        }
-    </script>
+// 🔹 時間格式
+function formatTime(t){
+  if(!t) return "-";
+  return t.replace("T"," ");
+}
+
+// 🔹 查詢
+async function search(){
+
+  const row = document.getElementById("row").value.trim();
+  const order = document.getElementById("order").value.trim();
+  const memberId = document.getElementById("memberId").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const product = document.getElementById("product").value.trim();
+  const amount = document.getElementById("amount").value.trim();
+  const time = document.getElementById("time").value.trim();
+
+  try{
+    const res = await fetch("https://vydism8n.roamerhost.com/webhook-test/44488b0c-0c0d-4f6f-8f20-86b15d5032f2",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        "row_number": row,
+        "訂單編號": order,
+        "會員ID": memberId,
+        "會員姓名": name,
+        "購買商品": product,
+        "購買金額": amount,
+        "交易時間": time
+      })
+    });
+
+    let data = await res.json();
+    if(!Array.isArray(data)) data = [data];
+
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+
+    let count = 0;
+
+    data.forEach(item=>{
+
+      // 🔹 前端篩選
+      if(row && String(item["row_number"]) !== row) return;
+      if(order && item["訂單編號"] !== order) return;
+      if(memberId && item["會員ID"] !== memberId) return;
+      if(name && !item["會員姓名"]?.includes(name)) return;
+      if(product && !item["購買商品"]?.includes(product)) return;
+      if(amount && String(item["購買金額"]) !== amount) return;
+      if(time && !item["交易時間"]?.includes(time)) return;
+
+      count++;
+
+      const tr = `
+      <tr>
+        <td>${item["row_number"] ?? "-"}</td>
+        <td>${item["訂單編號"] ?? "-"}</td>
+        <td>${item["會員ID"] ?? "-"}</td>
+        <td>${item["會員姓名"] ?? "-"}</td>
+        <td>${item["購買商品"] ?? "-"}</td>
+        <td>${formatMoney(item["購買金額"])}</td>
+        <td>${formatTime(item["交易時間"])}</td>
+      </tr>
+      `;
+
+      tbody.innerHTML += tr;
+    });
+
+    document.getElementById("info").innerHTML =
+      `查詢結果：${count} 筆`;
+
+    if(count === 0){
+      tbody.innerHTML = `<tr><td colspan="7">查無資料</td></tr>`;
+    }
+
+  }catch(err){
+    alert("錯誤："+err);
+  }
+}
+
+</script>
 
 </body>
 </html>
